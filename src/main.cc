@@ -100,7 +100,36 @@ string make_comm(queue<char*> &q, char** cm)
 	cm[size] = NULL;
 
 	return cond;
-}	
+}
+
+void seperate(char* a)
+{
+	char n[100];
+	int i, j;
+	for(i = 0, j = 0; a[i] != '\0'; i++,j++)
+	{
+		if(a[i] == ';')
+		{
+			n[j] = ' ';
+			j++;
+			n[j] = ';';
+			j++;
+			n[j] = ' ';
+		}
+		else
+		{
+			n[j] = a[i];
+		}
+	}
+	n[j] = '\0';
+	for(i = 0; n[i] != '\0'; i++)
+	{
+		a[i] = n[i];
+	}	
+	a[i] = '\0';	
+	return;
+}
+			
 
 //Main shell function
 void run()
@@ -119,6 +148,8 @@ void run()
 		//Puts input into array
 		cin.getline(line,100);	
 		
+		seperate(line);
+
 		//Seperates array into tokens
 		word = strtok(line," ");
 		while(word != NULL)
@@ -154,7 +185,24 @@ void run()
 int main()
 {
 	run();
+//	char a[100];
+//	a[0] = 'l';
+//	a[1] = ';';
+//	a[2] = 's';
+//	a[3] = '\0';
+//	cout << a << endl;
+//	seperate(a);
+//	cout << a << endl;
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
 

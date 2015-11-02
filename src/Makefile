@@ -1,2 +1,2 @@
 all:
-	g++ main.cc -Wall -Werror -ansi -pedantic
+	g++ main.cc -Wall -Werror -ansi -pedantic -o rshell
