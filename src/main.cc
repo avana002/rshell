@@ -159,15 +159,21 @@ void run()
 			word = strtok(NULL, " ");
 		}
 
+		queue<string> conn;
+		int num = 1;
+
 		//Runs through all tokens in queue		
 		while(!q.empty())	
 		{	
 			//Constructs command from tokens
 			char* comm[100];
-			string cond = make_comm(q,comm);
-			
+			//string cond = make_comm(q,comm);
+			conn.push(make_comm(q,comm));		
+
+			//int num = 1;
+	
 			//Executes commands if conditions met
-			if(should_run(prev_succ, cond))
+			if(num == 1 || should_run(prev_succ, conn.front()))
 			{
 				if(is_exit(comm[0]))			
 				{
@@ -177,7 +183,10 @@ void run()
 				{
 					prev_succ = run_comm(comm);
 				}
+				//num++;
 			}
+			if(num != 1)conn.pop();
+			num++;
 		}
 	}
 }	
