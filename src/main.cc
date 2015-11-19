@@ -2,11 +2,22 @@
 #include <cstdlib>
 #include <iostream>
 #include <cstring>
-#include <queue>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include "CommandBlock.cpp"
+#include "CommandLine.h"
 
 using namespace std;
+
+//Checks if is a connector
+bool is_conn(string s)
+{
+    if(s == ";" || s == "||" || s == "&&") return true;
+    else return false;
+}
 
 //Checks if command is "exit"
 bool is_exit(char* c)
@@ -25,14 +36,18 @@ bool should_run(bool fs, string c)
 //Forks and executes command and returns success state
 bool run_comm(char** a)
 {
+    //Forks
     pid_t pid = fork();
             
+    //Child process executes command
     if (pid == 0)
     {
         if (execvp(a[0], a) != 0) 
         perror("execvp");
         exit(1);
     }
+    
+    //Parent process waits for child process then returns success state
     else if (pid > 0)
     {    
         int i;
@@ -40,6 +55,8 @@ bool run_comm(char** a)
         if (i == 0) return true;
         else return false; 
     }
+    
+    //Failure
     else
     {
         cout << "Fork failed" << endl;
@@ -47,150 +64,91 @@ bool run_comm(char** a)
     }            
 }
 
-//Constructs command from tokens and returns connector
-string make_comm(queue<char*> &q, char** cm)
-{
-    bool again = false;
-    string cond = "";
-    int size = 0;
-
-    //Adds tokens to command
-    do
-    {
-        char* a = q.front();
-        q.pop();
-        
-        //Ignores everything after '#'
-        if (a[0] == '#')    
-        {
-            while (!q.empty()) q.pop();
-            again = false;
-        }
-        
-        //Checks for connectors
-        else if (a[0] == '|' && a[1] == '|')
-        {
-            cond = "||";
-            again = false;
-        }
-        else if (a[0] == '&' && a[1] == '&')
-        {
-            cond = "&&";
-            again = false;
-        }
-        else if (a[0] == ';')
-        {
-            cond = ";";
-            again = false;
-        }
-        
-        //Adds tokens to command being constructed
-        else
-        {
-            cm[size] = a;
-            size++;
-            again = true;
-        }
-
-        if (q.empty()) again = false;
-    
-    }while (again);
-    
-    //Terminates command with NULL
-    cm[size] = NULL;
-
-    return cond;
-}
-
 //Adds spaces to facilitate seperation of tokens
 void seperate(char* a)
 {
     char n[100];
     int i, j;
-    for (i = 0, j = 0; a[i] != '\0'; i++, j++)
+    
+    //Loops through original array and copies elements to new array
+    for (i = 0, j = 0; a[i] != '\0'; i++)
     {
-        if (a[i] == ';')
+        //If element requires spaces
+        if (a[i] == ';' || a[i] == '(' || a[i] == ')')
         {
-            n[j] = ' ';
+            //Adds space before if not first element
+            if(i != 0)
+            {
+                n[j] = ' ';
+                j++;
+            }
+            
+            //Adds element
+            n[j] = a[i];
             j++;
-            n[j] = ';';
-            j++;
-            n[j] = ' ';
+            
+            //Adds space after if not last element
+            if(a[i + 1] != '\0')
+            {
+                n[j] = ' ';
+                j++;
+            }
         }
+        
+        //If element doesn't need spaces
         else
         {
             n[j] = a[i];
+            j++;
         }
     }
+    
+    //Ends new array with null character
     n[j] = '\0';
+    
+    //Removes extra spaces at the end
+    while(n[j - 1] == ' ')
+    {
+        j--;
+        n[j] = '\0';
+    }
+    
+    //Copies elements from new array back into original array
     for (i = 0; n[i] != '\0'; i++)
     {
         a[i] = n[i];
     }    
+    
+    //Ends original array with null character
     a[i] = '\0';    
+   
     return;
 }
-            
-
-//Main shell function
+    
+//Main run function        
 void run()
 {
-    //Runs until "exit"
-    while (true)
+    while(true)
     {
-        char line[100];
-        char* word;
-        queue<char*> q;        
-        bool prev_succ = true;
-    
-        //Prints command line
+        //Gets input
+        char input[100];
         cout << "$ ";
+        cin.getline(input, 100);
         
-        //Puts input into array
-        cin.getline(line, 100);    
-
-        //Adds spaces between tokens        
-        seperate(line);
-
-        //Seperates array into tokens
-        word = strtok(line, " ");
-        while (word != NULL)
-        {
-            //Puts all tokens into a queue
-            q.push(word);
-            word = strtok(NULL, " ");
-        }
-
-        queue<string> conn;
-        int num = 1;
-
-        //Runs through all tokens in queue        
-        while (!q.empty())    
-        {    
-            //Constructs command from tokens
-            char* comm[100];
-            conn.push(make_comm(q, comm));        
-
-            //Executes commands if conditions met
-            if (num == 1 || should_run(prev_succ, conn.front()))
-            {
-                if (is_exit(comm[0]))            
-                {
-                    exit(0);
-                }        
-                else
-                {
-                    prev_succ = run_comm(comm);
-                }
-            }
-            if (num != 1)conn.pop();
-            num++;
-        }
+        //Constructs command line from input and runs it
+        CommandLine cl(input);
+        cl.run();
     }
-}    
+}
 
 int main()
 {
+    // string c = "ls";
+    // char a[100];
+    // strcpy(a,c.c_str());
+    // CommandLine cl(a);
+    // cl.run();
+
     run();
     return 0;
 }
