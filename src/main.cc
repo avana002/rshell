@@ -143,12 +143,6 @@ void run()
 
 int main()
 {
-    // string c = "ls";
-    // char a[100];
-    // strcpy(a,c.c_str());
-    // CommandLine cl(a);
-    // cl.run();
-
     run();
     return 0;
 }

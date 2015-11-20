@@ -1,6 +1,7 @@
 #!/bin/sh
 
-cd ~/rshell/src
+cd ..
+cd src
 
 echo "Testing command: ls ; ls"
 

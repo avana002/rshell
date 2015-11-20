@@ -167,7 +167,9 @@ bool CommandBlock::run()
         if(r.at(0) == '[' && r.at(r.size() - 1) == ']')
         {
             r.erase(0,1);
+            if (r.at(0) == ' ') r.erase(0,1);
             r.erase(r.size() - 1, 1);
+            if (r.at(r.size() - 1) == ' ') r.erase(r.size() - 1, 1);
             return test(r);
         }
         else if(is_test(r))
@@ -200,8 +202,17 @@ bool CommandBlock::run()
             //If command is exit
             if(is_exit(a[0])) exit(0);
             
-            //If not, runs command and returns success state
-            return run_comm(a);
+            //If not, runs command saves success state
+            prev_succ =  run_comm(a);
+
+            //Frees dynamically-allocated memory
+            for(int i = 0; a[i] != NULL; i++)
+            {
+                delete a[i];
+            }
+            
+            //Returns success state
+            return prev_succ;
         }
     }
     
